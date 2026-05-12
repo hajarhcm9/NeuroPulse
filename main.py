@@ -1,18 +1,33 @@
 """Smart Guardian Epilepsy AI - Backend FastAPI"""
 
 import uvicorn
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
 from app.core.config import settings
+from app.core.logging import setup_logging
+import logging
+
+logger = logging.getLogger("smart-guardian")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application lifespan: startup and shutdown events"""
+    setup_logging()
+    logger.info("Starting %s v%s", settings.APP_NAME, settings.APP_VERSION)
+    yield
+    logger.info("Shutting down %s", settings.APP_NAME)
+
 
 app = FastAPI(
-    title="Smart Guardian Epilepsy AI",
-    description="API Backend pour la surveillance de crises d'epilepsie",
-    version="0.1.0",
+    title=settings.APP_NAME,
+    description="API Backend pour la surveillance de crises depilepsie",
+    version=settings.APP_VERSION,
     docs_url="/api/docs",
     redoc_url="/api/redoc",
     openapi_url="/api/openapi.json",
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -28,7 +43,7 @@ app.add_middleware(
 async def root():
     return {
         "message": "Welcome to Smart Guardian Epilepsy AI API",
-        "version": "0.1.0",
+        "version": settings.APP_VERSION,
         "status": "running",
         "docs": "/api/docs",
     }
@@ -39,6 +54,7 @@ async def health_check():
     return {
         "status": "healthy",
         "service": "smart-guardian-backend",
+        "version": settings.APP_VERSION,
     }
 
 

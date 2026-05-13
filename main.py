@@ -9,9 +9,15 @@ from app.core.logging import setup_logging
 from app.core.mqtt_client import mqtt_client
 from app.api.auth_routes import router as auth_router
 from app.api.user_routes import router as user_router
+from app.api.sensor_routes import router as sensor_router
 import logging
 
 logger = logging.getLogger("smart-guardian")
+
+
+def handle_sensor_message(topic: str, payload: dict):
+    """Handle incoming MQTT sensor messages"""
+    logger.info("Sensor data received on %s", topic)
 
 
 @asynccontextmanager
@@ -19,6 +25,7 @@ async def lifespan(app: FastAPI):
     """Application lifespan: startup and shutdown events"""
     setup_logging()
     logger.info("Starting %s v%s", settings.APP_NAME, settings.APP_VERSION)
+    mqtt_client.register_handler(settings.MQTT_TOPIC_SENSORS, handle_sensor_message)
     mqtt_client.connect()
     logger.info("MQTT client connected")
     yield
@@ -46,6 +53,7 @@ app.add_middleware(
 
 app.include_router(auth_router)
 app.include_router(user_router)
+app.include_router(sensor_router)
 
 
 @app.get("/", tags=["Root"])

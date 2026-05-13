@@ -93,8 +93,8 @@ class AnalyticsService:
         weekly = self.get_weekly_distribution(user_id)
         vitals = self.get_vitals_during_seizures(user_id, limit=10)
 
-        peak_hour = max(hourly, key=lambda x: x['count'])["hour"] if hourly else None
-        peak_day = max(weekly, key=lambda x: x['count'])["day"] if weekly else None
+        peak_hour = max(hourly, key=lambda x: x['count'])['hour'] if hourly else None
+        peak_day = max(weekly, key=lambda x: x['count'])['day'] if weekly else None
 
         avg_hr = None
         avg_spo2 = None

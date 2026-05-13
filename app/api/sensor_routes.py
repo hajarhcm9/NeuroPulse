@@ -9,7 +9,7 @@ from app.models.user import User
 from app.schemas.sensor_data import SensorDataCreate, SensorDataResponse
 from app.services.sensor_service import SensorService
 
-router = APIRouter(prefix="/api/sensors", tags=["Sensors"])
+router = APIRouter(prefix="/api/sensors", tags=['Sensors'])
 
 
 @router.post("/", response_model=SensorDataResponse, status_code=201)

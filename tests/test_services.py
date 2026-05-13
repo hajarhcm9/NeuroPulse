@@ -37,7 +37,7 @@ class TestPreprocessingIntegration:
         service._model = service._create_dummy_model()
         result = service.predict(model_input)
         assert "seizure_probability" in result
-        assert isinstance(result["seizure_probability"], float)
+        assert isinstance(result['seizure_probability'], float)
 
     def test_batch_preprocessing_pipeline(self):
         data_list = [
@@ -62,14 +62,14 @@ class TestSecurityIntegration:
         assert verify_password(password, hashed) is True
         token = create_access_token({"sub": "42", "role": "patient"})
         payload = decode_token(token)
-        assert payload["sub"] == "42"
-        assert payload["role"] == "patient"
+        assert payload['sub'] == "42"
+        assert payload['role'] == "patient"
 
     def test_token_with_different_roles(self):
         for role in ["patient", "doctor", "admin"]:
             token = create_access_token({"sub": "1", "role": role})
             payload = decode_token(token)
-            assert payload["role"] == role
+            assert payload['role'] == role
 
 
 class TestSlidingWindowIntegration:

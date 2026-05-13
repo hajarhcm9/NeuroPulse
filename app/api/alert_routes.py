@@ -9,7 +9,7 @@ from app.models.user import User
 from app.schemas.alert import AlertCreate, AlertResponse, AlertUpdate
 from app.services.alert_service import AlertService
 
-router = APIRouter(prefix="/api/alerts", tags=["Alerts"])
+router = APIRouter(prefix="/api/alerts", tags=['Alerts'])
 
 
 @router.post("/", response_model=AlertResponse, status_code=201)

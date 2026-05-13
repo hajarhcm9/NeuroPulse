@@ -67,14 +67,14 @@ class TestPreprocessingService:
     def test_detect_artifacts_none_value(self):
         data = {"heart_rate": None, "spo2": 98.0}
         artifacts = preprocessing_service.detect_artifacts(data)
-        assert artifacts["heart_rate"] is True
-        assert artifacts["spo2"] is False
+        assert artifacts['heart_rate'] is True
+        assert artifacts['spo2'] is False
 
     def test_detect_artifacts_out_of_range(self):
         data = {"heart_rate": 300.0, "spo2": 98.0}
         artifacts = preprocessing_service.detect_artifacts(data)
-        assert artifacts["heart_rate"] is True
-        assert artifacts["spo2"] is False
+        assert artifacts['heart_rate'] is True
+        assert artifacts['spo2'] is False
 
     def test_preprocess_for_model(self):
         data = {"heart_rate": 75.0, "spo2": 98.0, "temperature": 36.6}
@@ -113,6 +113,6 @@ class TestModelService:
         service = model_service.__class__()
         service._model = service._create_dummy_model()
         info = service.get_model_info()
-        assert info["model_type"] == "dummy"
-        assert info["status"] == "development"
+        assert info['model_type'] == "dummy"
+        assert info['status'] == "development"
         assert "threshold" in info

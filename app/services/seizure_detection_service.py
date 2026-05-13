@@ -51,10 +51,10 @@ class SeizureDetectionService:
 
     def _build_alert_message(self, data: PredictionRequest, result: Dict[str, Any]) -> str:
         """Build a human-readable alert message"""
-        severity = self._determine_severity(result['seizure_probability"])
+        severity = self._determine_severity(result['seizure_probability'])
         msg = f"Seizure detection alert ({severity}): "
-        msg += f"probability={result['seizure_probability'].2f}, "
-        msg += f"confidence={result['confidence'].2f}. "
+        msg += f"probability={result['seizure_probability']:.2f}, "
+        msg += f"confidence={result['confidence']:.2f}. "
         if data.heart_rate:
             msg += f"HR={data.heart_rate:.1f} bpm, "
         if data.spo2:
@@ -69,28 +69,28 @@ class SeizureDetectionService:
         response = PredictionResponse(
             user_id=data.user_id,
             device_id=data.device_id,
-            seizure_probability=result['seizure_probability"],
-            is_seizure=result['is_seizure"],
-            confidence=result['confidence"],
-            model_version=result['model_version"],
+            seizure_probability=result['seizure_probability'],
+            is_seizure=result['is_seizure'],
+            confidence=result['confidence'],
+            model_version=result['model_version'],
             error=result.get("error"),
         )
 
-        if result['is_seizure']
-            severity = self._determine_severity(result['seizure_probability"])
+        if result['is_seizure']:
+            severity = self._determine_severity(result['seizure_probability'])
             alert_data = AlertCreate(
                 user_id=data.user_id,
                 device_id=data.device_id,
                 alert_type="seizure_detection",
                 severity=severity,
-                confidence=result['confidence"],
+                confidence=result['confidence'],
                 heart_rate=data.heart_rate,
                 spo2=data.spo2,
                 message=self._build_alert_message(data, result),
             )
             try:
                 self.alert_service.create_alert(alert_data)
-                logger.warning("Seizure alert created for user %s (prob=%.2f)", data.user_id, result['seizure_probability"])
+                logger.warning("Seizure alert created for user %s (prob=%.2f)", data.user_id, result['seizure_probability'])
             except Exception as e:
                 logger.error("Failed to create seizure alert: %s", str(e))
 

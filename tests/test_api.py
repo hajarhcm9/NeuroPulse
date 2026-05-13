@@ -13,7 +13,7 @@ def get_auth_headers(client, email="testapi@smartguardian.com", username="testap
         "last_name": "API",
     })
     response = client.post("/api/auth/login", json={"username": email, "password": password})
-    token = response.json()["access_token"]
+    token = response.json()['access_token']
     return {"Authorization": f"Bearer {token}"}
 
 
@@ -32,7 +32,7 @@ class TestUserAPI:
         headers = get_auth_headers(client)
         response = client.put("/api/users/me", headers=headers, json={"first_name": "Updated"})
         assert response.status_code == 200
-        assert response.json()["first_name"] == "Updated"
+        assert response.json()['first_name'] == "Updated"
 
     def test_unauthorized_access(self, client):
         response = client.get("/api/users/me")
@@ -52,8 +52,8 @@ class TestSensorAPI:
         response = client.post("/api/sensors/", headers=headers, json=sample_sensor_data)
         assert response.status_code == 201
         data = response.json()
-        assert data["device_id"] == sample_sensor_data["device_id"]
-        assert data["heart_rate"] == sample_sensor_data["heart_rate"]
+        assert data['device_id'] == sample_sensor_data['device_id']
+        assert data['heart_rate'] == sample_sensor_data['heart_rate']
 
     def test_get_user_sensor_data(self, client):
         headers = get_auth_headers(client, email="sensor2@test.com", username="sensoruser2")
@@ -73,8 +73,8 @@ class TestAlertAPI:
         response = client.post("/api/alerts/", headers=headers, json=sample_alert_data)
         assert response.status_code == 201
         data = response.json()
-        assert data["alert_type"] == "seizure_detection"
-        assert data["severity"] == "warning"
+        assert data['alert_type'] == "seizure_detection"
+        assert data['severity'] == "warning"
 
     def test_get_user_alerts(self, client):
         headers = get_auth_headers(client, email="alert2@test.com", username="alertuser2")
@@ -88,10 +88,10 @@ class TestAlertAPI:
     def test_update_alert(self, client, sample_alert_data):
         headers = get_auth_headers(client, email="alert3@test.com", username="alertuser3")
         create_resp = client.post("/api/alerts/", headers=headers, json=sample_alert_data)
-        alert_id = create_resp.json()["id"]
+        alert_id = create_resp.json()['id']
         response = client.put(f"/api/alerts/{alert_id}", headers=headers, json={"is_read": True})
         assert response.status_code == 200
-        assert response.json()["is_read"] is True
+        assert response.json()['is_read'] is True
 
 
 class TestNotificationAPI:

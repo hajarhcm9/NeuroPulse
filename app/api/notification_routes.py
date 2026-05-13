@@ -9,7 +9,7 @@ from app.models.user import User
 from app.schemas.notification import NotificationCreate, NotificationResponse, NotificationUpdate
 from app.services.notification_service import NotificationService
 
-router = APIRouter(prefix="/api/notifications", tags=["Notifications"])
+router = APIRouter(prefix="/api/notifications", tags=['Notifications'])
 
 
 @router.post("/", response_model=NotificationResponse, status_code=201)

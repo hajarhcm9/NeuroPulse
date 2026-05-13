@@ -34,8 +34,8 @@ class TestJWTTokens:
         token = create_access_token({"sub": "1", "role": "patient"})
         payload = decode_token(token)
         assert payload is not None
-        assert payload["sub"] == "1"
-        assert payload["role"] == "patient"
+        assert payload['sub'] == "1"
+        assert payload['role'] == "patient"
 
     def test_decode_invalid_token(self):
         payload = decode_token("invalid.token.here")
@@ -49,8 +49,8 @@ class TestAuthAPI:
         response = client.post("/api/auth/register", json=sample_user_data)
         assert response.status_code == 201
         data = response.json()
-        assert data["email"] == sample_user_data["email"]
-        assert data["username"] == sample_user_data["username"]
+        assert data['email'] == sample_user_data['email']
+        assert data['username'] == sample_user_data['username']
         assert "id" in data
         assert "hashed_password" not in data
 
@@ -66,7 +66,7 @@ class TestAuthAPI:
         data = response.json()
         assert "access_token" in data
         assert "refresh_token" in data
-        assert data["token_type"] == "bearer"
+        assert data['token_type'] == "bearer"
 
     def test_login_wrong_password(self, client, sample_user_data):
         client.post("/api/auth/register", json=sample_user_data)
@@ -81,10 +81,10 @@ class TestAuthAPI:
         response = client.get("/")
         assert response.status_code == 200
         data = response.json()
-        assert data["status"] == "running"
+        assert data['status'] == "running"
 
     def test_health_endpoint(self, client):
         response = client.get("/health")
         assert response.status_code == 200
         data = response.json()
-        assert data["status"] == "healthy"
+        assert data['status'] == "healthy"

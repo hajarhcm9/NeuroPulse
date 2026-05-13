@@ -1,3 +1,4 @@
+from app.core.database import Base
 """Smart Guardian - Pytest configuration and shared fixtures"""
 
 import pytest
@@ -27,13 +28,13 @@ app.dependency_overrides[get_db] = override_get_db
 @pytest.fixture(scope="function")
 def db_session():
     """Create a fresh database session for each test"""
-    DeclarativeBase.metadata.create_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
     db = TestingSessionLocal()
     try:
         yield db
     finally:
         db.close()
-        DeclarativeBase.metadata.drop_all(bind=engine)
+        Base.metadata.drop_all(bind=engine)
 
 
 @pytest.fixture(scope="function")

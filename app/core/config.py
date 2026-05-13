@@ -35,6 +35,7 @@ class Settings(BaseSettings):
     MQTT_TOPIC_SENSORS: str = "smart-guardian/sensors/#"
     MQTT_TOPIC_ALERTS: str = "smart-guardian/alerts"
 
+    AI_SEIZURE_THRESHOLD: float = 0.5
     AI_MODEL_PATH: str = "models/seizure_detector.h5"
     AI_CONFIDENCE_THRESHOLD: float = 0.85
 

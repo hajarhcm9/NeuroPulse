@@ -10,6 +10,7 @@ from app.core.mqtt_client import mqtt_client
 from app.api.auth_routes import router as auth_router
 from app.api.user_routes import router as user_router
 from app.api.sensor_routes import router as sensor_router
+from app.api.alert_routes import router as alert_router
 import logging
 
 logger = logging.getLogger("smart-guardian")
@@ -54,6 +55,7 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(user_router)
 app.include_router(sensor_router)
+app.include_router(alert_router)
 
 
 @app.get("/", tags=["Root"])

@@ -102,7 +102,7 @@ class TestNotificationAPI:
         response = client.post("/api/notifications/", headers=headers, json={
             "user_id": 1, "channel": "in_app", "title": "Test Notification", "body": "Hello",
         })
-        assert response.status_code == 401
+        assert response.status_code == 403
 
     def test_get_unread_count(self, client):
         headers = get_auth_headers(client, email="notif2@test.com", username="notifuser2")

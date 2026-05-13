@@ -7,10 +7,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.logging import setup_logging
 from app.core.mqtt_client import mqtt_client
+from app.services.model_service import model_service
 from app.api.auth_routes import router as auth_router
 from app.api.user_routes import router as user_router
 from app.api.sensor_routes import router as sensor_router
 from app.api.alert_routes import router as alert_router
+from app.api.prediction_routes import router as prediction_router
 import logging
 
 logger = logging.getLogger("smart-guardian")
@@ -26,6 +28,8 @@ async def lifespan(app: FastAPI):
     """Application lifespan: startup and shutdown events"""
     setup_logging()
     logger.info("Starting %s v%s", settings.APP_NAME, settings.APP_VERSION)
+    model_service.load_model()
+    logger.info("AI model loaded: %s", model_service.is_loaded)
     mqtt_client.register_handler(settings.MQTT_TOPIC_SENSORS, handle_sensor_message)
     mqtt_client.connect()
     logger.info("MQTT client connected")
@@ -56,6 +60,7 @@ app.include_router(auth_router)
 app.include_router(user_router)
 app.include_router(sensor_router)
 app.include_router(alert_router)
+app.include_router(prediction_router)
 
 
 @app.get("/", tags=["Root"])

@@ -36,7 +36,7 @@ class TestUserAPI:
 
     def test_unauthorized_access(self, client):
         response = client.get("/api/users/me")
-        assert response.status_code == 403
+        assert response.status_code == 401
 
     def test_invalid_token(self, client):
         headers = {"Authorization": "Bearer invalid.token.here"}

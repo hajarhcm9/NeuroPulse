@@ -108,7 +108,7 @@ class ExportService:
             "sensor_data": self._get_sensor_data(user_id, days),
             "summary": {
                 "total_alerts": len(self._get_alerts_data(user_id, days)),
-                "critical_alerts": len([a for a in self._get_alerts_data(user_id, days) if a["severity"] == "critical"]),
+                "critical_alerts": len([a for a in self._get_alerts_data(user_id, days) if a['severity'] == "critical"]),
                 "total_sensor_readings": len(self._get_sensor_data(user_id, days)),
             },
         }

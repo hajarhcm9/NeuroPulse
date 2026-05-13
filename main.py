@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.logging import setup_logging
+from app.core.mqtt_client import mqtt_client
 from app.api.auth_routes import router as auth_router
 from app.api.user_routes import router as user_router
 import logging
@@ -18,7 +19,10 @@ async def lifespan(app: FastAPI):
     """Application lifespan: startup and shutdown events"""
     setup_logging()
     logger.info("Starting %s v%s", settings.APP_NAME, settings.APP_VERSION)
+    mqtt_client.connect()
+    logger.info("MQTT client connected")
     yield
+    mqtt_client.disconnect()
     logger.info("Shutting down %s", settings.APP_NAME)
 
 

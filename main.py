@@ -14,6 +14,7 @@ from app.api.sensor_routes import router as sensor_router
 from app.api.alert_routes import router as alert_router
 from app.api.prediction_routes import router as prediction_router
 from app.api.notification_routes import router as notification_router
+from app.api.dashboard_routes import router as dashboard_router
 import logging
 
 logger = logging.getLogger("smart-guardian")
@@ -63,6 +64,7 @@ app.include_router(sensor_router)
 app.include_router(alert_router)
 app.include_router(prediction_router)
 app.include_router(notification_router)
+app.include_router(dashboard_router)
 
 
 @app.get("/", tags=["Root"])

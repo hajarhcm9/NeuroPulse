@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.logging import setup_logging
 from app.api.auth_routes import router as auth_router
+from app.api.user_routes import router as user_router
 import logging
 
 logger = logging.getLogger("smart-guardian")
@@ -40,6 +41,7 @@ app.add_middleware(
 )
 
 app.include_router(auth_router)
+app.include_router(user_router)
 
 
 @app.get("/", tags=["Root"])

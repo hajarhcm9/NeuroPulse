@@ -1,3 +1,4 @@
+import json
 """Smart Guardian - Export API routes"""
 
 from fastapi import APIRouter, Depends, Query

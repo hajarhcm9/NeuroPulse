@@ -57,7 +57,7 @@ class TestAuthAPI:
     def test_register_duplicate_email(self, client, sample_user_data):
         client.post("/api/auth/register", json=sample_user_data)
         response = client.post("/api/auth/register", json=sample_user_data)
-        assert response.status_code == 400
+        assert response.status_code == 409
 
     def test_login_success(self, client, sample_user_data, sample_login_data):
         client.post("/api/auth/register", json=sample_user_data)

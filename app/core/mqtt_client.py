@@ -32,7 +32,7 @@ class MQTTClient:
         else:
             logger.error("MQTT connection failed with code: %s", rc)
 
-    def _on_disconnect(self, client, userdata, flags, rc):
+    def _on_disconnect(self, client, userdata, flags, rc, properties=None):
         self._connected = False
         logger.warning("MQTT disconnected with code: %s", rc)
 

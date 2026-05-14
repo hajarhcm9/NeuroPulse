@@ -1,121 +1,153 @@
-from app.core.database import Base
-"""Smart Guardian - Pytest configuration and shared fixtures"""
+"""Smart Guardian - Test fixtures (sync SQLAlchemy)"""
 
+import os
+import sys
+import uuid
 import pytest
 from fastapi.testclient import TestClient
+
+# Project root on PATH
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
+# Override env *before* importing app
+os.environ["DATABASE_URL"] = "sqlite:///test.db"
+os.environ["ENVIRONMENT"] = "testing"
+os.environ["DEBUG"] = "false"
+os.environ["MQTT_BROKER_HOST"] = "localhost"
+os.environ["MQTT_BROKER_PORT"] = "1883"
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from app.core.database import DeclarativeBase, get_db
+from app.core.database import Base, get_db
 from main import app
 
-TEST_DATABASE_URL = "sqlite:///./test_smart_guardian.db"
-
-engine = create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+# Test engine & session (sync SQLite)
+test_engine = create_engine("sqlite:///test.db", echo=False)
+TestSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
 
 
 def override_get_db():
-    db = TestingSessionLocal()
+    """Yield a test DB session."""
+    db = TestSessionLocal()
     try:
         yield db
     finally:
         db.close()
 
 
-app.dependency_overrides[get_db] = override_get_db
+# Setup / teardown
 
-
-@pytest.fixture(scope="function")
-def db_session():
-    """Create a fresh database session for each test"""
-    Base.metadata.create_all(bind=engine)
-    db = TestingSessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-        Base.metadata.drop_all(bind=engine)
-
-
-@pytest.fixture(scope="function")
-def client(db_session):
-    """Create a test client with DB session override"""
-    return TestClient(app)
+@pytest.fixture(autouse=True)
+def setup_database():
+    Base.metadata.create_all(bind=test_engine)
+    yield
+    Base.metadata.drop_all(bind=test_engine)
 
 
 @pytest.fixture
-def sample_user_data():
-    """Sample user data for registration tests"""
-    return {
-        "email": "test@smartguardian.com",
-        "username": "testuser",
-        "password": "TestPass123!",
-        "first_name": "Test",
-        "last_name": "User",
-        "phone": "+1234567890",
-    }
+def client():
+    app.dependency_overrides[get_db] = override_get_db
+    with TestClient(app, raise_server_exceptions=False) as c:
+        yield c
+    app.dependency_overrides.clear()
+
+
+# Auth helpers
+
+@pytest.fixture
+def auth_token(client):
+    unique = str(uuid.uuid4())[:8]
+    client.post("/api/auth/register", json={
+        "email": f"test_{unique}@test.com",
+        "username": f"testuser_{unique}",
+        "password": "Testpass123",
+    })
+    resp = client.post("/api/auth/login", json={
+        "username": f"test_{unique}@test.com",
+        "password": "Testpass123",
+    })
+    return resp.json()["access_token"]
 
 
 @pytest.fixture
-def sample_login_data():
-    """Sample login data"""
-    return {
-        "username": "test@smartguardian.com",
-        "password": "TestPass123!",
-    }
+def auth_user_id(client):
+    """Register, login, return (token, user_id)."""
+    from app.models.user import User
+    unique = str(uuid.uuid4())[:8]
+    client.post("/api/auth/register", json={
+        "email": f"uid_{unique}@test.com",
+        "username": f"uiduser_{unique}",
+        "password": "Testpass123",
+    })
+    resp = client.post("/api/auth/login", json={
+        "username": f"uid_{unique}@test.com",
+        "password": "Testpass123",
+    })
+    token = resp.json()["access_token"]
+    # Get user id from DB
+    db = TestSessionLocal()
+    user = db.query(User).filter(User.email == f"uid_{unique}@test.com").first()
+    uid = user.id if user else 1
+    db.close()
+    return token, uid
 
 
 @pytest.fixture
-def sample_sensor_data():
-    """Sample sensor data for testing"""
-    return {
-        "user_id": 1,
-        "device_id": "BK-M01-DEVICE-001",
-        "sensor_type": "multi",
-        "heart_rate": 75.0,
-        "spo2": 98.0,
-        "temperature": 36.6,
-        "accelerometer_x": 0.1,
-        "accelerometer_y": -0.05,
-        "accelerometer_z": 9.81,
-        "gyroscope_x": 0.0,
-        "gyroscope_y": 0.0,
-        "gyroscope_z": 0.0,
-        "emg_signal": 0.15,
-        "eda_signal": 0.3,
-    }
+def admin_token(client):
+    from app.models.user import User
+    from sqlalchemy import update
+    unique = str(uuid.uuid4())[:8]
+    client.post("/api/auth/register", json={
+        "email": f"admin_{unique}@test.com",
+        "username": f"admin_{unique}",
+        "password": "Adminpass123",
+    })
+    db = TestSessionLocal()
+    stmt = update(User).where(User.username == f"admin_{unique}").values(
+        role="admin", is_superuser=True
+    )
+    db.execute(stmt)
+    db.commit()
+    db.close()
+    resp = client.post("/api/auth/login", json={
+        "username": f"admin_{unique}@test.com",
+        "password": "Adminpass123",
+    })
+    return resp.json()["access_token"]
 
 
 @pytest.fixture
-def sample_alert_data():
-    """Sample alert data for testing"""
-    return {
-        "user_id": 1,
-        "device_id": "BK-M01-DEVICE-001",
-        "alert_type": "seizure_detection",
-        "severity": "warning",
-        "confidence": 0.85,
-        "heart_rate": 120.0,
-        "spo2": 90.0,
-        "message": "Potential seizure detected",
-    }
+def admin_user_id(client):
+    """Register admin, return (token, user_id)."""
+    from app.models.user import User
+    from sqlalchemy import update
+    unique = str(uuid.uuid4())[:8]
+    client.post("/api/auth/register", json={
+        "email": f"admu_{unique}@test.com",
+        "username": f"admu_{unique}",
+        "password": "Adminpass123",
+    })
+    db = TestSessionLocal()
+    stmt = update(User).where(User.username == f"admu_{unique}").values(
+        role="admin", is_superuser=True
+    )
+    db.execute(stmt)
+    db.commit()
+    user = db.query(User).filter(User.username == f"admu_{unique}").first()
+    uid = user.id if user else 1
+    db.close()
+    resp = client.post("/api/auth/login", json={
+        "username": f"admu_{unique}@test.com",
+        "password": "Adminpass123",
+    })
+    return resp.json()["access_token"], uid
 
 
-@pytest.fixture
-def sample_prediction_data():
-    """Sample prediction request data"""
-    return {
-        "user_id": 1,
-        "device_id": "BK-M01-DEVICE-001",
-        "heart_rate": 120.0,
-        "spo2": 90.0,
-        "temperature": 37.5,
-        "accelerometer_x": 2.5,
-        "accelerometer_y": -1.8,
-        "accelerometer_z": 8.2,
-        "gyroscope_x": 50.0,
-        "gyroscope_y": -30.0,
-        "gyroscope_z": 45.0,
-        "emg_signal": 0.75,
-        "eda_signal": 0.65,
-    }
+# Cleanup
+
+def pytest_sessionfinish(session, exitstatus):
+    db_path = os.path.join(PROJECT_ROOT, "test.db")
+    if os.path.exists(db_path):
+        os.remove(db_path)

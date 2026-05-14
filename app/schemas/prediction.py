@@ -1,60 +1,44 @@
-"""Smart Guardian - Prediction schemas"""
-
-from datetime import datetime
-from typing import Optional, List, Dict, Any
+"""Prediction schemas."""
+from typing import List, Optional
 from pydantic import BaseModel, Field
 
-
 class PredictionRequest(BaseModel):
-    """Schema for prediction request with sensor data"""
-    user_id: int
-    device_id: str
-    heart_rate: Optional[float] = None
-    spo2: Optional[float] = None
-    temperature: Optional[float] = None
-    accelerometer_x: Optional[float] = None
-    accelerometer_y: Optional[float] = None
-    accelerometer_z: Optional[float] = None
-    gyroscope_x: Optional[float] = None
-    gyroscope_y: Optional[float] = None
-    gyroscope_z: Optional[float] = None
-    emg_signal: Optional[float] = None
-    eda_signal: Optional[float] = None
+    heart_rate: float = Field(75.0, description="Heart rate BPM")
+    spo2: float = Field(98.0, description="SpO2 percentage")
+    accelerometer: float = Field(0.5, description="Accel magnitude g")
 
+    emg_signal: float = Field(0.3, description="EMG strength 0-1")
+    eda_signal: float = Field(0.3, description="EDA level 0-1")
+    temperature: float = Field(36.5, description="Temp Celsius")
+    eeg_data: Optional[List[float]] = Field(None, description="Optional EEG")
+
+class EEGSegmentRequest(BaseModel):
+    eeg_data: List[float] = Field(..., min_length=178, description="Raw EEG samples")
+    sampling_rate: int = Field(173, description="EEG Hz")
+    channel: str = Field("Fp1", description="EEG channel")
 
 class PredictionResponse(BaseModel):
-    """Schema for prediction response"""
-    user_id: int
-    device_id: str
     seizure_probability: float
     is_seizure: bool
     confidence: float
-    model_version: str
-    timestamp: datetime = Field(default_factory=datetime.now)
-    error: Optional[str] = None
 
+    prediction_mode: str = Field("sensor", description="Mode used")
+    risk_factors: List[str] = Field(default_factory=list)
+    model_version: str = "unknown"
+    timestamp: Optional[str] = None
 
 class ModelInfoResponse(BaseModel):
-    """Schema for model info response"""
-    model_type: str
-    version: str
-    threshold: float
-    status: str
-    input_shape: Optional[str] = None
-    output_shape: Optional[str] = None
+    sensor_model_available: bool = True
+    eeg_model_available: bool = False
+    sensor_model_version: str = "sensor-heuristic-v1.0"
 
+    eeg_model_version: Optional[str] = None
+    prediction_modes: List[str] = ["sensor", "eeg", "hybrid"]
 
 class BatchPredictionRequest(BaseModel):
-    """Schema for batch prediction with multiple data points"""
-    user_id: int
-    device_id: str
-    data_points: List[PredictionRequest] = Field(..., min_length=1, max_length=100)
-
+    predictions: List[PredictionRequest] = Field(..., description="List of predictions")
 
 class BatchPredictionResponse(BaseModel):
-    """Schema for batch prediction response"""
-    user_id: int
-    device_id: str
-    predictions: List[PredictionResponse]
-    avg_seizure_probability: float
-    max_seizure_probability: float
+    results: List[PredictionResponse] = Field(default_factory=list)
+    total_count: int = 0
+    seizure_count: int = 0

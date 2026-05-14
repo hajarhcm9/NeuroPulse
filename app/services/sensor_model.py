@@ -1,0 +1,1 @@
+pbpaste > app/services/sensor_model.py

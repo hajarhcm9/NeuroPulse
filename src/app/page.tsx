@@ -1,65 +1,85 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { Heart, Droplets, Move, AlertTriangle } from 'lucide-react';
+import BottomNav from '@/components/BottomNav';
+import RiskGauge from '@/components/RiskGauge';
+import { generateHeartRate, generateSpO2, generateMovement, generateRiskLevel } from '@/lib/simulation';
+
+export default function DashboardPage() {
+  const router = useRouter();
+  const [hr, setHr] = useState(72);
+  const [spo2, setSpo2] = useState(98);
+  const [move, setMove] = useState(0.3);
+  const [risk, setRisk] = useState({ level: 'Faible', percent: 18, color: '#00D26A' });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setHr(Math.round(generateHeartRate()));
+      setSpo2(Math.round(generateSpO2() * 10) / 10);
+      setMove(Math.round(generateMovement() * 100) / 100);
+      setRisk(generateRiskLevel());
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div style={{ minHeight: '100vh', padding: '20px 20px 100px' }} className="page-enter">
+      <h1 style={{ fontSize: 28, fontWeight: 800, color: 'white' }}>Bonjour Ahmed 👋</h1>
+      <p style={{ fontSize: 15, color: '#8D91B5', marginTop: 4 }}>Restez en sécurité aujourd&apos;hui</p>
+
+      {/* Risk Gauge Card */}
+      <div className="dark-card" style={{ marginTop: 24, alignItems: 'center', display: 'flex', flexDirection: 'column' }}>
+        <RiskGauge percent={risk.percent} level={risk.level} color={risk.color} />
+      </div>
+
+      {/* Status */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 20, justifyContent: 'center' }}>
+        <div style={{ width: 10, height: 10, borderRadius: 5, background: '#00D26A', boxShadow: '0 0 10px #00D26A' }} />
+        <span style={{ fontSize: 16, fontWeight: 600, color: '#00D26A' }}>Tout est stable</span>
+      </div>
+
+      {/* Vital Cards */}
+      <div style={{ display: 'flex', gap: 12, marginTop: 20 }}>
+        <div className="vital-card">
+          <Heart size={22} color="#00D26A" style={{ marginBottom: 6 }} />
+          <div style={{ fontSize: 22, fontWeight: 800, color: '#00D26A' }}>{hr}</div>
+          <div style={{ fontSize: 11, color: '#8D91B5', marginTop: 2 }}>bpm</div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <div className="vital-card">
+          <Droplets size={22} color="#4AA8FF" style={{ marginBottom: 6 }} />
+          <div style={{ fontSize: 22, fontWeight: 800, color: '#4AA8FF' }}>{spo2}%</div>
+          <div style={{ fontSize: 11, color: '#8D91B5', marginTop: 2 }}>SpO2</div>
         </div>
-      </main>
+        <div className="vital-card">
+          <Move size={22} color="#FFD43B" style={{ marginBottom: 6 }} />
+          <div style={{ fontSize: 16, fontWeight: 700, color: '#FFD43B', marginTop: 4 }}>Faible</div>
+          <div style={{ fontSize: 11, color: '#8D91B5', marginTop: 2 }}>Mouvements</div>
+        </div>
+      </div>
+
+      {/* Start Monitoring Button */}
+      <button className="btn-primary" style={{ marginTop: 24 }} onClick={() => router.push('/monitoring')}>
+        Démarrer la surveillance
+      </button>
+
+      {/* SOS FAB */}
+      <button
+        onClick={() => router.push('/sos')}
+        style={{
+          position: 'fixed', bottom: 100, right: 'calc(50% - 195px)',
+          width: 56, height: 56, borderRadius: 28,
+          background: 'linear-gradient(135deg, #FF375F, #FF1744)',
+          border: 'none', cursor: 'pointer', display: 'flex',
+          alignItems: 'center', justifyContent: 'center',
+          boxShadow: '0 0 20px rgba(255,55,95,0.5)', zIndex: 40,
+        }}
+      >
+        <AlertTriangle size={24} color="white" />
+      </button>
+
+      <BottomNav />
     </div>
   );
 }

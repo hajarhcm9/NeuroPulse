@@ -17,6 +17,9 @@ from app.api.notification_routes import router as notification_router
 from app.api.dashboard_routes import router as dashboard_router
 from app.api.export_routes import router as export_router
 from app.core.mqtt_subscriber import setup_mqtt_subscriber
+from app.core.rate_limiter import RateLimitMiddleware, SecurityHeadersMiddleware
+from app.core.device_auth import device_auth
+from app.core.audit_logger import audit
 from app.api.websocket_routes import router as websocket_router, ws_manager
 import logging
 import asyncio
@@ -32,6 +35,9 @@ async def lifespan(app: FastAPI):
     logger.info("Starting %s v%s", settings.app_name, settings.app_version)
     model_service.load_model()
     logger.info("AI model loaded: %s", model_service.is_loaded)
+    device_auth.register_device("SG-BRACELET-001", "sg-key-dev-001")
+    device_auth.register_device("SG-BRACELET-002", "sg-key-dev-002")
+    logger.info("Registered %d default devices", len(device_auth._devices))
     setup_mqtt_subscriber()
     mqtt_client.connect()
     ws_manager.set_loop(asyncio.get_event_loop())
@@ -58,6 +64,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.add_middleware(RateLimitMiddleware, requests_per_minute=60)
+app.add_middleware(SecurityHeadersMiddleware)
 
 app.include_router(auth_router)
 app.include_router(user_router)

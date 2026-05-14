@@ -7,6 +7,7 @@ from app.core.deps import get_current_user, require_role
 from app.models.user import User
 from app.services.dashboard_service import DashboardService
 from app.services.analytics_service import AnalyticsService
+from app.services.prediction_analytics_service import PredictionAnalyticsService
 
 router = APIRouter(prefix="/api/dashboard", tags=["Dashboard & Analytics"])
 
@@ -79,3 +80,39 @@ def get_seizure_summary(user_id: int, db: Session = Depends(get_db), current_use
     """Get comprehensive seizure analytics summary"""
     service = AnalyticsService(db)
     return service.get_seizure_summary(user_id)
+
+@router.get("/system-health")
+def get_system_health(db: Session = Depends(get_db), current_user: User = Depends(require_role("admin"))):
+    """Get system health status"""
+    service = PredictionAnalyticsService(db)
+    return service.get_system_health()
+
+@router.get("/prediction-confidence/{user_id}")
+def get_confidence_trend(user_id: int, days: int = Query(default=30, le=365), db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """Get prediction confidence trend for a patient"""
+    service = PredictionAnalyticsService(db)
+    return service.get_prediction_confidence_trend(user_id, days)
+
+@router.get("/seizure-correlation/{user_id}")
+def get_seizure_correlation(user_id: int, days: int = Query(default=90, le=365), db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """Analyze seizure-vital correlations"""
+    service = PredictionAnalyticsService(db)
+    return service.get_seizure_correlation(user_id, days)
+
+@router.get("/system-health")
+def get_system_health(db: Session = Depends(get_db), current_user: User = Depends(require_role("admin"))):
+    """Get system health status"""
+    service = PredictionAnalyticsService(db)
+    return service.get_system_health()
+
+@router.get("/prediction-confidence/{user_id}")
+def get_confidence_trend(user_id: int, days: int = Query(default=30, le=365), db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """Get prediction confidence trend for a patient"""
+    service = PredictionAnalyticsService(db)
+    return service.get_prediction_confidence_trend(user_id, days)
+
+@router.get("/model-performance")
+def get_model_performance(days: int = Query(default=30, le=365), db: Session = Depends(get_db), current_user: User = Depends(require_role("admin", "doctor"))):
+    """Get model performance summary"""
+    service = PredictionAnalyticsService(db)
+    return service.get_model_performance_summary(days)

@@ -18,14 +18,14 @@ class MQTTClient:
         self.client.on_disconnect = self._on_disconnect
         self.client.on_message = self._on_message
         self._message_handlers = {}
-        if settings.MQTT_USERNAME:
-            self.client.username_pw_set(settings.MQTT_USERNAME, settings.MQTT_PASSWORD)
+        if settings.mqtt_username:
+            self.client.username_pw_set(settings.mqtt_username, settings.mqtt_password)
 
     def _on_connect(self, client, userdata, flags, rc, properties=None):
         if rc == 0:
-            logger.info("MQTT connected to %s:%s", settings.MQTT_BROKER_HOST, settings.MQTT_BROKER_PORT)
-            self.client.subscribe(settings.MQTT_TOPIC_SENSORS)
-            logger.info("Subscribed to: %s", settings.MQTT_TOPIC_SENSORS)
+            logger.info("MQTT connected to %s:%s", settings.mqtt_broker_host, settings.mqtt_broker_port)
+            self.client.subscribe(settings.mqtt_topic_sensors)
+            logger.info("Subscribed to: %s", settings.mqtt_topic_sensors)
         else:
             logger.error("MQTT connection failed with code: %s", rc)
 
@@ -50,7 +50,7 @@ class MQTTClient:
 
     def connect(self) -> bool:
         try:
-            self.client.connect(settings.MQTT_BROKER_HOST, settings.MQTT_BROKER_PORT, keepalive=60)
+            self.client.connect(settings.mqtt_broker_host, settings.mqtt_broker_port, keepalive=60)
             self.client.loop_start()
             return True
         except Exception as e:

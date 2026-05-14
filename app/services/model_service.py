@@ -1,112 +1,138 @@
-"""Smart Guardian - AI Model Service"""
+"""Smart Guardian - Model Service with Real TensorFlow Model"""
 
 import os
+import json
 import logging
 import numpy as np
-from typing import Optional, Dict, Any
-from app.core.config import settings
+from pathlib import Path
 
-logger = logging.getLogger("smart-guardian")
+logger = logging.getLogger(__name__)
 
 
 class ModelService:
-    """TensorFlow model loading and inference service"""
+    """Singleton service for seizure detection model inference."""
 
     _instance = None
-    _model = None
 
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
+            cls._instance._initialized = False
         return cls._instance
 
-    @property
-    def is_loaded(self) -> bool:
-        return self._model is not None
-
-    def load_model(self) -> None:
-        """Load the TensorFlow seizure detection model"""
-        if self._model is not None:
-            logger.info("Model already loaded, skipping")
+    def __init__(self):
+        if self._initialized:
             return
+        self._initialized = True
+        self.model = None
+        self.model_version = "0.0.0"
+        self.norm_mean = 0.0
+        self.norm_std = 1.0
+        self._load_model()
 
-        model_path = settings.AI_MODEL_PATH
-        if not os.path.exists(model_path):
-            logger.warning("Model file not found at %s, using dummy model", model_path)
-            self._model = self._create_dummy_model()
-            return
-
+    def _load_model(self):
+        """Load the trained Keras model and normalization params."""
         try:
             import tensorflow as tf
-            self._model = tf.keras.models.load_model(model_path)
-            logger.info("Model loaded from %s", model_path)
+
+            model_paths = [
+                Path("models/seizure_detector.h5"),
+                Path("ml/models/seizhure_detector.h5"),
+                Path("ml/training/models/seizure_detector.h5"),
+                Path(__file__).parent.parent.parent / "models" / "seizure_detector.h5",
+                Path(__file__).parent.parent.parent / "ml" / "training" / "models" / "seizure_detector.h5",
+            ]
+
+            model_path = None
+            for path in model_paths:
+                if path.exists():
+                    model_path = path
+                    break
+
+            if model_path is None:
+                logger.warning("No trained model found. Using dummy model.")
+                self.model = None
+                return
+
+            self.model = tf.keras.models.load_model(str(model_path))
+            logger.info(f"Model loaded from {model_path}")
+
+            metadata_paths = [
+                Path("models/model_metadata.json"),
+                Path("ml/models/model_metadata.json"),
+                Path("ml/training/models/model_metadata.json"),
+                Path(__file__).parent.parent.parent / "models" / "model_metadata.json",
+                Path(__file__).parent.parent.parent / "ml" / "training" / "models" / "model_metadata.json",
+            ]
+
+            for meta_path in metadata_paths:
+                if meta_path.exists():
+                    with open(meta_path, "r") as f:
+                        metadata = json.load(f)
+                    self.model_version = metadata.get("model_version", "1.0.0")
+                    norm = metadata.get("normalization", {})
+                    self.norm_mean = norm.get("mean", 0.0)
+                    self.norm_std = norm.get("std", 1.0)
+                    logger.info(
+                        f"Model v{self.model_version} | "
+                        f"norm_mean={self.norm_mean:.4f}, norm_std={self.norm_std:.4f}"
+                    )
+                    break
+
         except ImportError:
-            logger.warning("TensorFlow not installed, using dummy model")
-            self._model = self._create_dummy_model()
+            logger.warning("TensorFlow not installed. Using dummy model.")
+            self.model = None
         except Exception as e:
-            logger.error("Failed to load model: %s", str(e))
-            self._model = self._create_dummy_model()
+            logger.error(f"Error loading model: {e}")
+            self.model = None
 
-    def _create_dummy_model(self):
-        """Create a dummy model for development/testing"""
-        return {"type": "dummy", "version": "0.1.0", "threshold": settings.AI_SEIZURE_THRESHOLD}
+    @property
+    def is_loaded(self):
+        return self.model is not None
 
-    def predict(self, features: np.ndarray) -> Dict[str, Any]:
-        """Run inference on the model"""
-        if self._model is None:
-            self.load_model()
+    def load_model(self):
+        self._load_model()
 
-        if isinstance(self._model, dict):
-            return self._dummy_predict(features)
+    def predict(self, features: np.ndarray) -> dict:
+        """
+        Run seizhure detection on input features.
 
-        try:
-            prediction = self._model.predict(features, verbose=0)
-            seizure_prob = float(prediction[0][0])
-            return {
-                "seizure_probability": seizure_prob,
-                "is_seizure": seizure_prob >= settings.AI_SEIZURE_THRESHOLD,
-                "confidence": abs(seizure_prob - 0.5) * 2,
-                "model_version": settings.AI_MODEL_VERSION,
-            }
-        except Exception as e:
-            logger.error("Prediction failed: %s", str(e))
+        Args:
+            features: numpy array of shape (178,) or (1, 178) or (1, 178, 1)
+
+        Returns:
+            dict with seizure_probability, is_seizure, confidence, model_version
+        """
+        if self.model is None:
             return {
                 "seizure_probability": 0.0,
-                "is_seizure": False,
+                "is_seizhure": False,
                 "confidence": 0.0,
-                "model_version": settings.AI_MODEL_VERSION,
-                "error": str(e),
+                "model_version": "dummy",
             }
 
-    def _dummy_predict(self, features: np.ndarray) -> Dict[str, Any]:
-        """Dummy prediction for development"""
-        return {
-            "seizure_probability": 0.15,
-            "is_seizure": False,
-            "confidence": 0.7,
-            "model_version": "dummy-0.1.0",
-        }
+        x = np.array(features, dtype=np.float32)
+        if x.ndim == 1:
+            x = x.reshape(1, 178, 1)
+        elif x.ndim == 2 and x.shape[0] == 1:
+            x = x.reshape(1, x.shape[1], 1)
+        elif x.ndim == 2:
+            x = x.reshape(x.shape[0], 178, 1)
 
-    def get_model_info(self) -> Dict[str, Any]:
-        """Return model metadata"""
-        if self._model is None:
-            self.load_model()
+        x = (x - self.norm_mean) / self.norm_std
 
-        if isinstance(self._model, dict):
-            return {
-                "model_type": "dummy",
-                "version": "0.1.0",
-                "threshold": settings.AI_SEIZURE_THRESHOLD,
-                "status": "development",
-            }
+        prediction = self.model.predict(x, verbose=0)
+        prob = float(prediction[0][0])
+
+        threshold = 0.5
+        is_seizure = prob >= threshold
+        confidence = prob if is_seizure else (1.0 - prob)
 
         return {
-            "model_type": "tensorflow",
-            "version": settings.AI_MODEL_VERSION,
-            "threshold": settings.AI_SEIZURE_THRESHOLD,
-            "input_shape": str(self._model.input_shape),
-            "output_shape": str(self._model.output_shape),
-            "status": "production",
+            "seizure_probability": round(prob, 4),
+            "is_seizure": is_seizure,
+            "confidence": round(confidence, 4),
+            "model_version": self.model_version,
         }
 
 

@@ -1,0 +1,26 @@
+{
+  "model_version": "1.0.0",
+  "trained_at": "2026-05-14T00:09:44.936249",
+  "sequence_length": 178,
+  "num_channels": 1,
+  "input_shape": [
+    178,
+    1
+  ],
+  "normalization": {
+    "mean": 38.21548134514499,
+    "std": 79.40934749388981
+  },
+  "metrics": {
+    "loss": 9.090686035051476e-07,
+    "compile_metrics": 1.0
+  },
+  "training_params": {
+    "epochs": 50,
+    "batch_size": 32,
+    "lstm_units": 64,
+    "dropout_rate": 0.3,
+    "learning_rate": 0.001,
+    "num_samples": 4000
+  }
+}

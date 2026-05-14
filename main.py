@@ -30,21 +30,21 @@ def handle_sensor_message(topic: str, payload: dict):
 async def lifespan(app: FastAPI):
     """Application lifespan: startup and shutdown events"""
     setup_logging()
-    logger.info("Starting %s v%s", settings.APP_NAME, settings.APP_VERSION)
+    logger.info("Starting %s v%s", settings.app_name, settings.app_version)
     model_service.load_model()
     logger.info("AI model loaded: %s", model_service.is_loaded)
-    mqtt_client.register_handler(settings.MQTT_TOPIC_SENSORS, handle_sensor_message)
+    mqtt_client.register_handler(settings.mqtt_topic_sensors, handle_sensor_message)
     mqtt_client.connect()
     logger.info("MQTT client connected")
     yield
     mqtt_client.disconnect()
-    logger.info("Shutting down %s", settings.APP_NAME)
+    logger.info("Shutting down %s", settings.app_name)
 
 
 app = FastAPI(
-    title=settings.APP_NAME,
+    title=settings.app_name,
     description="API Backend pour la surveillance de crises depilepsie",
-    version=settings.APP_VERSION,
+    version=settings.app_version,
     docs_url="/api/docs",
     redoc_url="/api/redoc",
     openapi_url="/api/openapi.json",
@@ -53,7 +53,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
+    allow_origins=settings.cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -73,7 +73,7 @@ app.include_router(export_router)
 async def root():
     return {
         "message": "Welcome to Smart Guardian Epilepsy AI API",
-        "version": settings.APP_VERSION,
+        "version": settings.app_version,
         "status": "running",
         "docs": "/api/docs",
     }
@@ -84,14 +84,21 @@ async def health_check():
     return {
         "status": "healthy",
         "service": "smart-guardian-backend",
-        "version": settings.APP_VERSION,
+        "version": settings.app_version,
     }
 
 
+
+@app.post("/api/test/predict")
+async def test_predict(body: dict):
+    features = body.get("features", [])
+    from app.services.model_service import model_service
+    import numpy as np
+    return model_service.predict(np.array(features))
 if __name__ == "__main__":
     uvicorn.run(
         "main:app",
-        host=settings.HOST,
-        port=settings.PORT,
-        reload=settings.DEBUG,
+        host=settings.host,
+        port=settings.port,
+        reload=settings.debug,
     )

@@ -30,7 +30,7 @@ class AlertService:
             message=data.message,
         )
         alert = self.alert_repo.create(alert)
-        mqtt_client.publish(settings.MQTT_TOPIC_ALERTS, AlertResponse.model_validate(alert).model_dump())
+        mqtt_client.publish(settings.mqtt_topic_alerts, AlertResponse.model_validate(alert).model_dump())
         logger.warning("Alert created: type=%s severity=%s user=%s", data.alert_type, data.severity, data.user_id)
         return AlertResponse.model_validate(alert)
 

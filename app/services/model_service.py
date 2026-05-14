@@ -90,6 +90,17 @@ class ModelService:
     def is_loaded(self):
         return self.model is not None
 
+
+    def get_model_info(self) -> dict:
+        """Return model metadata for the API."""
+        return {
+            "model_type": "Conv1D + BiLSTM + Dense" if self.model else "dummy",
+            "version": self.model_version,
+            "threshold": 0.5,
+            "status": "loaded" if self.model else "not_loaded",
+            "input_shape": "(1, 178, 1)" if self.model else None,
+            "output_shape": "(1, 1)" if self.model else None,
+        }
     def load_model(self):
         self._load_model()
 

@@ -16,14 +16,13 @@ from app.api.prediction_routes import router as prediction_router
 from app.api.notification_routes import router as notification_router
 from app.api.dashboard_routes import router as dashboard_router
 from app.api.export_routes import router as export_router
+from app.core.mqtt_subscriber import setup_mqtt_subscriber
+from app.api.websocket_routes import router as websocket_router, ws_manager
 import logging
+import asyncio
 
 logger = logging.getLogger("smart-guardian")
 
-
-def handle_sensor_message(topic: str, payload: dict):
-    """Handle incoming MQTT sensor messages"""
-    logger.info("Sensor data received on %s", topic)
 
 
 @asynccontextmanager
@@ -33,8 +32,9 @@ async def lifespan(app: FastAPI):
     logger.info("Starting %s v%s", settings.app_name, settings.app_version)
     model_service.load_model()
     logger.info("AI model loaded: %s", model_service.is_loaded)
-    mqtt_client.register_handler(settings.mqtt_topic_sensors, handle_sensor_message)
+    setup_mqtt_subscriber()
     mqtt_client.connect()
+    ws_manager.set_loop(asyncio.get_event_loop())
     logger.info("MQTT client connected")
     yield
     mqtt_client.disconnect()
@@ -67,6 +67,7 @@ app.include_router(prediction_router)
 app.include_router(notification_router)
 app.include_router(dashboard_router)
 app.include_router(export_router)
+app.include_router(websocket_router)
 
 
 @app.get("/", tags=["Root"])

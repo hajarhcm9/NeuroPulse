@@ -21,6 +21,7 @@ from app.core.rate_limiter import RateLimitMiddleware, SecurityHeadersMiddleware
 from app.core.device_auth import device_auth
 from app.core.audit_logger import audit
 from app.api.websocket_routes import router as websocket_router, ws_manager
+from app.api.training_routes import router as training_router
 import logging
 import asyncio
 
@@ -77,6 +78,7 @@ app.include_router(notification_router)
 app.include_router(dashboard_router)
 app.include_router(export_router)
 app.include_router(websocket_router)
+app.include_router(training_router)
 
 
 @app.get("/", tags=["Root"])

@@ -1,0 +1,300 @@
+
+/* ===== PHASE 3: Animations & Transitions ===== */
+
+/* Page enter animation */
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Card stagger enter */
+@keyframes cardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Slide in from right */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Slide in from bottom */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Pulse glow */
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(255, 59, 48, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 50px rgba(255, 59, 48, 0.6), 0 0 80px rgba(255, 59, 48, 0.2);
+  }
+}
+
+/* Enhanced SOS pulse */
+@keyframes sosPulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7);
+  }
+  50% {
+    transform: scale(1.04);
+    box-shadow: 0 0 0 20px rgba(255, 59, 48, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 59, 48, 0);
+  }
+}
+
+/* SOS ripple rings */
+@keyframes sosRipple {
+  0% {
+    transform: scale(0.8);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+/* Gauge needle sweep */
+@keyframes gaugeNeedle {
+  from {
+    transform: rotate(-90deg);
+  }
+}
+
+/* Shimmer loading */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Float animation */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+/* Breathe animation for cards */
+@keyframes breathe {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.01);
+  }
+}
+
+/* Success checkmark */
+@keyframes checkmark {
+  0% {
+    stroke-dashoffset: 50;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Number count up */
+@keyframes countUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== UTILITY CLASSES ===== */
+
+.page-enter {
+  animation: pageEnter 0.4s ease-out forwards;
+}
+
+.card-enter {
+  animation: cardEnter 0.5s ease-out forwards;
+  opacity: 0;
+}
+
+.card-enter-1 { animation-delay: 0.05s; }
+.card-enter-2 { animation-delay: 0.1s; }
+.card-enter-3 { animation-delay: 0.15s; }
+.card-enter-4 { animation-delay: 0.2s; }
+.card-enter-5 { animation-delay: 0.25s; }
+.card-enter-6 { animation-delay: 0.3s; }
+.card-enter-7 { animation-delay: 0.35s; }
+.card-enter-8 { animation-delay: 0.4s; }
+
+.slide-in-right {
+  animation: slideInRight 0.4s ease-out forwards;
+}
+
+.slide-in-up {
+  animation: slideInUp 0.4s ease-out forwards;
+}
+
+.sos-pulse {
+  animation: sosPulse 1.5s ease-in-out infinite;
+}
+
+.sos-ripple::before,
+.sos-ripple::after {
+  content: '';
+  position: absolute;
+  inset: -10px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 59, 48, 0.4);
+  animation: sosRipple 2s ease-out infinite;
+}
+
+.sos-ripple::after {
+  animation-delay: 1s;
+}
+
+.shimmer-loading {
+  background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.04) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.float-anim {
+  animation: float 3s ease-in-out infinite;
+}
+
+.breathe-anim {
+  animation: breathe 4s ease-in-out infinite;
+}
+
+/* Smooth transitions for interactive elements */
+.dark-card, .white-card, .vital-card, .filter-pill, .btn-primary {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+.dark-card:active, .white-card:active {
+  transform: scale(0.98);
+}
+
+.btn-primary:active {
+  transform: scale(0.96);
+}
+
+.filter-pill {
+  transition: all 0.25s ease;
+}
+
+.filter-pill.active {
+  background: rgba(123, 97, 255, 0.2);
+  color: #7B61FF;
+  border-color: rgba(123, 97, 255, 0.5);
+  box-shadow: 0 0 12px rgba(123, 97, 255, 0.2);
+}
+
+/* Hover effects */
+@media (hover: hover) {
+  .dark-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  }
+  
+  .btn-primary:hover {
+    box-shadow: 0 4px 20px rgba(123, 97, 255, 0.4);
+  }
+}
+
+/* Route transition wrapper */
+.route-transition {
+  animation: pageEnter 0.35s ease-out;
+}
+
+/* Stagger list animation helper */
+.stagger-list > * {
+  opacity: 0;
+  animation: cardEnter 0.45s ease-out forwards;
+}
+
+.stagger-list > *:nth-child(1) { animation-delay: 0.04s; }
+.stagger-list > *:nth-child(2) { animation-delay: 0.08s; }
+.stagger-list > *:nth-child(3) { animation-delay: 0.12s; }
+.stagger-list > *:nth-child(4) { animation-delay: 0.16s; }
+.stagger-list > *:nth-child(5) { animation-delay: 0.20s; }
+.stagger-list > *:nth-child(6) { animation-delay: 0.24s; }
+.stagger-list > *:nth-child(7) { animation-delay: 0.28s; }
+.stagger-list > *:nth-child(8) { animation-delay: 0.32s; }
+.stagger-list > *:nth-child(9) { animation-delay: 0.36s; }
+.stagger-list > *:nth-child(10) { animation-delay: 0.40s; }
+
+/* Number animation */
+.number-animate {
+  animation: countUp 0.4s ease-out;
+}
+
+/* Skeleton card */
+.skeleton-card {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 20px;
+  padding: 16px;
+  overflow: hidden;
+}
+
+.skeleton-line {
+  height: 14px;
+  border-radius: 7px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  margin-bottom: 10px;
+}
+
+.skeleton-line:last-child {
+  width: 60%;
+}
+
+.skeleton-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}

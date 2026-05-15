@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     # Application
     app_name: str = "Smart Guardian"
     app_version: str = "1.0.0"
-    app_description: str = "Epilepsy monitoring and seizhure detection backend"
+    app_description: str = "Epilepsy monitoring and seizure detection backend"
     environment: str = "development"
     debug: bool = True
 
@@ -53,7 +53,7 @@ class Settings(BaseSettings):
     mqtt_topic_alerts: str = "smart-guardian/alerts"
 
     # Model
-    model_path: str = "models/seizhure_detector.h5"
+    model_path: str = "models/seizure_detector.h5"
     model_version: str = "1.0.0"
     seizure_threshold: float = 0.5
 

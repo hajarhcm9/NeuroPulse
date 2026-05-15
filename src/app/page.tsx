@@ -1,85 +1,147 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Heart, Droplets, Move, AlertTriangle } from 'lucide-react';
-import BottomNav from '@/components/BottomNav';
-import RiskGauge from '@/components/RiskGauge';
-import { generateHeartRate, generateSpO2, generateMovement, generateRiskLevel } from '@/lib/simulation';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { login } from "@/lib/auth";
 
-export default function DashboardPage() {
+export default function LoginPage() {
   const router = useRouter();
-  const [hr, setHr] = useState(72);
-  const [spo2, setSpo2] = useState(98);
-  const [move, setMove] = useState(0.3);
-  const [risk, setRisk] = useState({ level: 'Faible', percent: 18, color: '#00D26A' });
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setHr(Math.round(generateHeartRate()));
-      setSpo2(Math.round(generateSpO2() * 10) / 10);
-      setMove(Math.round(generateMovement() * 100) / 100);
-      setRisk(generateRiskLevel());
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    await new Promise(r => setTimeout(r, 1200));
+
+    const result = login(email, password);
+    
+    if (result.success) {
+      router.push("/verify");
+    } else {
+      setError(result.message);
+      setLoading(false);
+    }
+  };
 
   return (
-    <div style={{ minHeight: '100vh', padding: '20px 20px 100px' }} className="page-enter">
-      <h1 style={{ fontSize: 28, fontWeight: 800, color: 'white' }}>Bonjour Ahmed 👋</h1>
-      <p style={{ fontSize: 15, color: '#8D91B5', marginTop: 4 }}>Restez en sécurité aujourd&apos;hui</p>
-
-      {/* Risk Gauge Card */}
-      <div className="dark-card" style={{ marginTop: 24, alignItems: 'center', display: 'flex', flexDirection: 'column' }}>
-        <RiskGauge percent={risk.percent} level={risk.level} color={risk.color} />
+    <div className="min-h-screen flex flex-col items-center justify-center px-6 py-8" style={{ background: "linear-gradient(180deg, #070B2B 0%, #0D1333 50%, #070B2B 100%)" }}>
+      {/* Logo */}
+      <div className="mb-8 text-center">
+        <div className="w-20 h-20 mx-auto mb-4 rounded-2xl flex items-center justify-center" style={{ background: "linear-gradient(135deg, #7B61FF 0%, #9D8FFF 100%)", boxShadow: "0 8px 32px rgba(123,97,255,0.4)" }}>
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+          </svg>
+        </div>
+        <h1 className="text-3xl font-bold text-white mb-1">Smart Guardian</h1>
+        <p className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>Protection intelligente contre l&apos;epilepsie</p>
       </div>
 
-      {/* Status */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 20, justifyContent: 'center' }}>
-        <div style={{ width: 10, height: 10, borderRadius: 5, background: '#00D26A', boxShadow: '0 0 10px #00D26A' }} />
-        <span style={{ fontSize: 16, fontWeight: 600, color: '#00D26A' }}>Tout est stable</span>
+      {/* Login Form */}
+      <div className="w-full max-w-sm">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Email */}
+          <div>
+            <label className="block text-xs font-medium mb-2" style={{ color: "rgba(255,255,255,0.6)" }}>Adresse email</label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: "rgba(255,255,255,0.3)" }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+              </span>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="votre@email.com"
+                className="input-dark pl-11"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Password */}
+          <div>
+            <label className="block text-xs font-medium mb-2" style={{ color: "rgba(255,255,255,0.6)" }}>Mot de passe</label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: "rgba(255,255,255,0.3)" }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              </span>
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Entrez votre mot de passe"
+                className="input-dark pl-11 pr-11"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2"
+                style={{ color: "rgba(255,255,255,0.3)" }}
+              >
+                {showPassword ? (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                ) : (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Error */}
+          {error && (
+            <div className="p-3 rounded-xl text-sm text-center" style={{ background: "rgba(255,59,48,0.15)", color: "#FF6B6B", border: "1px solid rgba(255,59,48,0.2)" }}>
+              {error}
+            </div>
+          )}
+
+          {/* Submit */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn-primary w-full flex items-center justify-center gap-2"
+            style={{ minHeight: "52px" }}
+          >
+            {loading ? (
+              <div className="flex items-center gap-2">
+                <svg className="animate-spin" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" strokeOpacity="0.3"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>
+                <span>Connexion...</span>
+              </div>
+            ) : (
+              <span>Se connecter</span>
+            )}
+          </button>
+        </form>
+
+        {/* Divider */}
+        <div className="flex items-center gap-4 my-6">
+          <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.1)" }}></div>
+          <span className="text-xs" style={{ color: "rgba(255,255,255,0.3)" }}>ou</span>
+          <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.1)" }}></div>
+        </div>
+
+        {/* Social Login */}
+        <div className="space-y-3">
+          <button className="w-full flex items-center justify-center gap-3 py-3 rounded-xl text-white text-sm font-medium" style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}>
+            <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+            Google
+          </button>
+          <button className="w-full flex items-center justify-center gap-3 py-3 rounded-xl text-white text-sm font-medium" style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)" }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+            Apple
+          </button>
+        </div>
+
+        {/* Footer */}
+        <p className="text-center mt-8 text-xs" style={{ color: "rgba(255,255,255,0.3)" }}>
+          Pas encore de compte ? <span className="font-semibold" style={{ color: "#7B61FF" }}>Creer un compte</span>
+        </p>
       </div>
-
-      {/* Vital Cards */}
-      <div style={{ display: 'flex', gap: 12, marginTop: 20 }}>
-        <div className="vital-card">
-          <Heart size={22} color="#00D26A" style={{ marginBottom: 6 }} />
-          <div style={{ fontSize: 22, fontWeight: 800, color: '#00D26A' }}>{hr}</div>
-          <div style={{ fontSize: 11, color: '#8D91B5', marginTop: 2 }}>bpm</div>
-        </div>
-        <div className="vital-card">
-          <Droplets size={22} color="#4AA8FF" style={{ marginBottom: 6 }} />
-          <div style={{ fontSize: 22, fontWeight: 800, color: '#4AA8FF' }}>{spo2}%</div>
-          <div style={{ fontSize: 11, color: '#8D91B5', marginTop: 2 }}>SpO2</div>
-        </div>
-        <div className="vital-card">
-          <Move size={22} color="#FFD43B" style={{ marginBottom: 6 }} />
-          <div style={{ fontSize: 16, fontWeight: 700, color: '#FFD43B', marginTop: 4 }}>Faible</div>
-          <div style={{ fontSize: 11, color: '#8D91B5', marginTop: 2 }}>Mouvements</div>
-        </div>
-      </div>
-
-      {/* Start Monitoring Button */}
-      <button className="btn-primary" style={{ marginTop: 24 }} onClick={() => router.push('/monitoring')}>
-        Démarrer la surveillance
-      </button>
-
-      {/* SOS FAB */}
-      <button
-        onClick={() => router.push('/sos')}
-        style={{
-          position: 'fixed', bottom: 100, right: 'calc(50% - 195px)',
-          width: 56, height: 56, borderRadius: 28,
-          background: 'linear-gradient(135deg, #FF375F, #FF1744)',
-          border: 'none', cursor: 'pointer', display: 'flex',
-          alignItems: 'center', justifyContent: 'center',
-          boxShadow: '0 0 20px rgba(255,55,95,0.5)', zIndex: 40,
-        }}
-      >
-        <AlertTriangle size={24} color="white" />
-      </button>
-
-      <BottomNav />
     </div>
   );
 }
